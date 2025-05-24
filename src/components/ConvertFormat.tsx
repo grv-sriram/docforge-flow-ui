@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Upload, X, FileText, ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { downloadFile, downloadZip, createMockDocument } from "@/utils/downloadUtils";
 
 interface ConvertFormatProps {
   onBack: () => void;
@@ -17,6 +17,7 @@ interface ConversionFile extends File {
   outputFormat: string;
   progress: number;
   status: 'pending' | 'converting' | 'completed' | 'error';
+  convertedBlob?: Blob;
 }
 
 export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
@@ -136,9 +137,18 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
         ));
       }
 
+      // Create converted file blob
+      const originalName = file.name.split('.').slice(0, -1).join('.');
+      const convertedBlob = createMockDocument(`${originalName}.${file.outputFormat}`, file.outputFormat);
+
       // Mark file as completed
       setUploadedFiles(files => files.map(f => 
-        f.id === file.id ? { ...f, status: 'completed' as const, progress: 100 } : f
+        f.id === file.id ? { 
+          ...f, 
+          status: 'completed' as const, 
+          progress: 100,
+          convertedBlob 
+        } : f
       ));
 
       completedFiles++;
@@ -150,6 +160,73 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
       title: "Conversion Complete!",
       description: `${totalFiles} file(s) converted successfully.`,
     });
+  };
+
+  const handleDownloadFile = (file: ConversionFile) => {
+    if (!file.convertedBlob) {
+      toast({
+        title: "Download Error",
+        description: "File not ready for download. Please try converting again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const originalName = file.name.split('.').slice(0, -1).join('.');
+      const filename = `${originalName}.${file.outputFormat}`;
+      
+      downloadFile(file.convertedBlob, filename, file.convertedBlob.type);
+      
+      toast({
+        title: "Download Started",
+        description: `Downloading ${filename}`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred while downloading the file.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadAllAsZip = async () => {
+    const completedFiles = uploadedFiles.filter(f => f.status === 'completed' && f.convertedBlob);
+    
+    if (completedFiles.length === 0) {
+      toast({
+        title: "No Files Ready",
+        description: "No converted files available for download.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const files = completedFiles.map(file => {
+        const originalName = file.name.split('.').slice(0, -1).join('.');
+        return {
+          name: `${originalName}.${file.outputFormat}`,
+          content: file.convertedBlob!
+        };
+      });
+
+      await downloadZip(files, 'converted-documents.zip');
+      
+      toast({
+        title: "Download Started",
+        description: `Downloading ${files.length} converted files`,
+      });
+    } catch (error) {
+      console.error('ZIP download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred while creating the ZIP file.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -356,7 +433,11 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
                     </select>
                     
                     {file.status === 'completed' && (
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDownloadFile(file)}
+                      >
                         <Download className="h-3 w-3" />
                       </Button>
                     )}
@@ -397,7 +478,10 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
               </Button>
               
               {uploadedFiles.some(f => f.status === 'completed') && (
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={handleDownloadAllAsZip}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Download All as ZIP
                 </Button>

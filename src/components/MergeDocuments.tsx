@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, FileText, ArrowLeft, Download, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { downloadFile, createMockDocument } from "@/utils/downloadUtils";
 
 interface MergeDocumentsProps {
   onBack: () => void;
@@ -18,6 +18,7 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [outputFilename, setOutputFilename] = useState("merged-document");
+  const [mergedBlob, setMergedBlob] = useState<Blob | null>(null);
   const { toast } = useToast();
 
   const acceptedTypes = ['.pdf', '.docx', '.doc', '.txt', '.pptx', '.ppt'];
@@ -95,6 +96,9 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
   const removeFile = (index: number) => {
     const newFiles = uploadedFiles.filter((_, i) => i !== index);
     setUploadedFiles(newFiles);
+    // Reset merged file if files are removed
+    setMergedBlob(null);
+    setProgress(0);
   };
 
   const moveFile = (fromIndex: number, toIndex: number) => {
@@ -102,6 +106,9 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
     const [movedFile] = newFiles.splice(fromIndex, 1);
     newFiles.splice(toIndex, 0, movedFile);
     setUploadedFiles(newFiles);
+    // Reset merged file if order changes
+    setMergedBlob(null);
+    setProgress(0);
   };
 
   const handleMerge = async () => {
@@ -114,24 +121,80 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
       return;
     }
 
+    if (!outputFilename.trim()) {
+      toast({
+        title: "Invalid filename",
+        description: "Please enter a valid filename for the merged document.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     setProgress(0);
+    setMergedBlob(null);
 
-    // Simulate merging process
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsProcessing(false);
-          toast({
-            title: "Merge Complete!",
-            description: "Your documents have been merged successfully.",
-          });
-          return 100;
-        }
-        return prev + 10;
+    try {
+      // Simulate merging process
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            
+            // Create merged file blob
+            const fileExtension = uploadedFiles[0].name.split('.').pop()?.toLowerCase() || 'pdf';
+            const mergedFile = createMockDocument(`${outputFilename}.${fileExtension}`, fileExtension);
+            setMergedBlob(mergedFile);
+            
+            setIsProcessing(false);
+            toast({
+              title: "Merge Complete!",
+              description: "Your documents have been merged successfully.",
+            });
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 300);
+    } catch (error) {
+      console.error('Merge error:', error);
+      setIsProcessing(false);
+      toast({
+        title: "Merge Failed",
+        description: "An error occurred while merging the documents.",
+        variant: "destructive",
       });
-    }, 300);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!mergedBlob) {
+      toast({
+        title: "Download Error",
+        description: "No merged file available for download.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const fileExtension = uploadedFiles[0].name.split('.').pop()?.toLowerCase() || 'pdf';
+      const filename = `${outputFilename}.${fileExtension}`;
+      
+      downloadFile(mergedBlob, filename, mergedBlob.type);
+      
+      toast({
+        title: "Download Started",
+        description: `Downloading ${filename}`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred while downloading the file.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -300,8 +363,11 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
                 {isProcessing ? "Merging..." : "Start Merge"}
               </Button>
               
-              {progress === 100 && (
-                <Button variant="outline">
+              {progress === 100 && mergedBlob && (
+                <Button 
+                  variant="outline"
+                  onClick={handleDownload}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Download Merged File
                 </Button>
