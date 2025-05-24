@@ -1,17 +1,16 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Merge, Split, RefreshCw, Upload, Moon, Sun, Menu, X } from "lucide-react";
-import { FileUpload } from "@/components/FileUpload";
-import { ProcessingOptions } from "@/components/ProcessingOptions";
+import { MergeDocuments } from "@/components/MergeDocuments";
+import { SplitDocuments } from "@/components/SplitDocuments";
+import { ExtractText } from "@/components/ExtractText";
+import { ConvertFormat } from "@/components/ConvertFormat";
 import { useTheme } from "next-themes";
 
 const Index = () => {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -52,20 +51,32 @@ const Index = () => {
 
   const handleToolSelect = (toolId: string) => {
     setSelectedTool(toolId);
-    setCurrentStep(2);
   };
 
   const handleBackToTools = () => {
     setSelectedTool(null);
-    setCurrentStep(1);
-    setUploadedFiles([]);
   };
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  if (selectedTool && currentStep > 1) {
+  const renderSelectedTool = () => {
+    switch (selectedTool) {
+      case "merge":
+        return <MergeDocuments onBack={handleBackToTools} />;
+      case "split":
+        return <SplitDocuments onBack={handleBackToTools} />;
+      case "extract":
+        return <ExtractText onBack={handleBackToTools} />;
+      case "convert":
+        return <ConvertFormat onBack={handleBackToTools} />;
+      default:
+        return null;
+    }
+  };
+
+  if (selectedTool) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
@@ -94,51 +105,7 @@ const Index = () => {
         </header>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
-          {/* Breadcrumb */}
-          <div className="flex items-center space-x-2 mb-8">
-            <Button variant="ghost" onClick={handleBackToTools} className="p-0 h-auto text-blue-400 hover:text-blue-300">
-              Document Tools
-            </Button>
-            <span className="text-muted-foreground">/</span>
-            <span className="text-foreground font-medium">
-              {tools.find(t => t.id === selectedTool)?.title}
-            </span>
-          </div>
-
-          {currentStep === 2 && (
-            <FileUpload
-              selectedTool={selectedTool}
-              onFilesUploaded={setUploadedFiles}
-              onNext={() => setCurrentStep(3)}
-            />
-          )}
-
-          {currentStep === 3 && uploadedFiles.length > 0 && (
-            <ProcessingOptions
-              selectedTool={selectedTool}
-              uploadedFiles={uploadedFiles}
-              onBack={() => setCurrentStep(2)}
-              onProcess={() => setCurrentStep(4)}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <div className="text-center space-y-6">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                <div className="w-8 h-8 bg-green-500 rounded-full animate-pulse"></div>
-              </div>
-              <h2 className="text-2xl font-bold">Processing Complete!</h2>
-              <p className="text-muted-foreground">Your document has been processed successfully.</p>
-              <div className="flex gap-4 justify-center">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  Download Result
-                </Button>
-                <Button variant="outline" onClick={handleBackToTools}>
-                  Process Another
-                </Button>
-              </div>
-            </div>
-          )}
+          {renderSelectedTool()}
         </main>
       </div>
     );
