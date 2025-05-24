@@ -113,3 +113,20 @@ export const createMockDocument = (filename: string, format: string): Blob => {
   
   return new Blob([content], { type: mimeType });
 };
+
+// New function for creating split documents
+export const createSplitDocument = (originalFilename: string, pageNumbers: number[], namingPattern: string): { name: string; content: Blob }[] => {
+  const originalExtension = originalFilename.split('.').pop()?.toLowerCase() || 'pdf';
+  const baseName = originalFilename.split('.').slice(0, -1).join('.');
+  
+  return pageNumbers.map(pageNum => {
+    const fileName = namingPattern.replace('{n}', pageNum.toString());
+    const fullFileName = `${fileName}.${originalExtension}`;
+    const content = createMockDocument(fullFileName, originalExtension);
+    
+    return {
+      name: fullFileName,
+      content
+    };
+  });
+};

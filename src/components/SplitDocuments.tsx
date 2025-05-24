@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, ArrowLeft, Download, FileText, Scissors } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { downloadFile, createSplitDocument } from "@/utils/downloadUtils";
 
 interface SplitDocumentsProps {
   onBack: () => void;
@@ -23,6 +23,7 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
   const [pageCount, setPageCount] = useState(1);
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
   const [namingPattern, setNamingPattern] = useState('page_{n}');
+  const [splitFiles, setSplitFiles] = useState<{ name: string; content: Blob }[]>([]);
   const { toast } = useToast();
 
   const acceptedTypes = ['.pdf', '.docx', '.doc', '.txt', '.pptx', '.ppt'];
@@ -60,6 +61,8 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
     if (validateFile(file)) {
       setUploadedFile(file);
       setSelectedPages([]);
+      setSplitFiles([]);
+      setProgress(0);
       toast({
         title: "File uploaded successfully",
         description: `${file.name} is ready for splitting.`,
@@ -115,6 +118,8 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
   };
 
   const handleSplit = async () => {
+    if (!uploadedFile) return;
+
     let pagesToSplit: number[] = [];
     
     switch (splitMethod) {
@@ -143,12 +148,18 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
 
     setIsProcessing(true);
     setProgress(0);
+    setSplitFiles([]);
 
     // Simulate splitting process
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval);
+          
+          // Create split files
+          const files = createSplitDocument(uploadedFile.name, pagesToSplit, namingPattern);
+          setSplitFiles(files);
+          
           setIsProcessing(false);
           toast({
             title: "Split Complete!",
@@ -159,6 +170,23 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
         return prev + 8;
       });
     }, 200);
+  };
+
+  const handleDownloadFile = (file: { name: string; content: Blob }) => {
+    try {
+      downloadFile(file.content, file.name, file.content.type);
+      toast({
+        title: "Download Started",
+        description: `Downloading ${file.name}`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred while downloading the file.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -244,7 +272,11 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
               </div>
               <Button
                 variant="outline"
-                onClick={() => setUploadedFile(null)}
+                onClick={() => {
+                  setUploadedFile(null);
+                  setSplitFiles([]);
+                  setProgress(0);
+                }}
                 className="text-red-500 hover:bg-red-500/10"
               >
                 Remove
@@ -380,13 +412,42 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
               >
                 {isProcessing ? "Splitting..." : "Start Split"}
               </Button>
-              
-              {progress === 100 && (
-                <Button variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download ZIP File
-                </Button>
-              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Split Files Results */}
+      {splitFiles.length > 0 && (
+        <Card className="border border-border/50">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Split Files ({splitFiles.length})</h3>
+            <div className="space-y-3">
+              {splitFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(file.content.size)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => handleDownloadFile(file)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
         </Card>

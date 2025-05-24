@@ -435,10 +435,11 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
                     {file.status === 'completed' && (
                       <Button 
                         size="sm" 
-                        variant="outline"
                         onClick={() => handleDownloadFile(file)}
+                        className="bg-orange-600 hover:bg-orange-700"
                       >
-                        <Download className="h-3 w-3" />
+                        <Download className="h-3 w-3 mr-1" />
+                        Download
                       </Button>
                     )}
                     
