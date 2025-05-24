@@ -1,13 +1,14 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { FileText, Merge, Split, RefreshCw, Upload, Moon, Sun, Menu, X } from "lucide-react";
 import { MergeDocuments } from "@/components/MergeDocuments";
 import { SplitDocuments } from "@/components/SplitDocuments";
 import { ExtractText } from "@/components/ExtractText";
 import { ConvertFormat } from "@/components/ConvertFormat";
 import { useTheme } from "next-themes";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
@@ -125,9 +126,9 @@ const Index = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
               <nav className="flex space-x-6">
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/features" className="text-muted-foreground hover:text-foreground transition-colors">
                   Features
-                </a>
+                </Link>
                 <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
                   Pricing
                 </a>
@@ -174,9 +175,9 @@ const Index = () => {
           {isMenuOpen && (
             <div className="md:hidden border-t border-border/50 py-4">
               <nav className="flex flex-col space-y-4">
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/features" className="text-muted-foreground hover:text-foreground transition-colors">
                   Features
-                </a>
+                </Link>
                 <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
                   Pricing
                 </a>
@@ -197,12 +198,8 @@ const Index = () => {
       <section className="relative py-20 px-4 text-center">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-green-500/5"></div>
         <div className="relative max-w-4xl mx-auto">
-          <Badge className="mb-6 bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20">
-            🚀 New: AI-Powered Document Processing
-          </Badge>
-          
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
-            Transform Your Documents with DocForge
+            Transform and Edit Your Documents with DocForge
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed">
