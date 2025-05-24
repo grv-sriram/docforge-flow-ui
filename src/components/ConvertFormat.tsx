@@ -164,7 +164,8 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
     return uploadedFiles.reduce((sum, file) => sum + file.size, 0);
   };
 
-  const getFileIcon = (filename: string) => {
+  const getFileIcon = (filename: string | undefined) => {
+    if (!filename) return <FileText className="h-5 w-5 text-orange-500" />;
     const extension = filename.split('.').pop()?.toLowerCase();
     return <FileText className="h-5 w-5 text-orange-500" />;
   };
@@ -327,7 +328,7 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
                       <p className="font-medium text-sm">{file.name}</p>
                       <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                         <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded">
-                          {file.name.split('.').pop()?.toUpperCase()}
+                          {file.name?.split('.').pop()?.toUpperCase() || 'UNKNOWN'}
                         </span>
                         <span>{formatFileSize(file.size)}</span>
                         <span className={getStatusColor(file.status)}>
