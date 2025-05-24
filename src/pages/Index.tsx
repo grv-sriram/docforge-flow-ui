@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Merge, Split, ConvertFormat, Upload, Moon, Sun, Menu, X } from "lucide-react";
+import { FileText, Merge, Split, RefreshCw, Upload, Moon, Sun, Menu, X } from "lucide-react";
 import { FileUpload } from "@/components/FileUpload";
 import { ProcessingOptions } from "@/components/ProcessingOptions";
 import { useTheme } from "next-themes";
@@ -44,7 +44,7 @@ const Index = () => {
       id: "convert",
       title: "Convert Format",
       description: "Change document formats",
-      icon: ConvertFormat,
+      icon: RefreshCw,
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-500/10 border-orange-500/20",
     },
@@ -311,7 +311,7 @@ const Index = () => {
             </div>
             <div className="space-y-4">
               <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto">
-                <ConvertFormat className="h-6 w-6 text-purple-500" />
+                <RefreshCw className="h-6 w-6 text-purple-500" />
               </div>
               <h3 className="text-xl font-semibold">Secure Processing</h3>
               <p className="text-muted-foreground">Your documents are processed securely and deleted after use</p>
