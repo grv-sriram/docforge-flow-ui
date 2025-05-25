@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,12 +9,12 @@ import {
   Type, 
   Download,
   Upload,
-  Shield,
   Clock,
   CheckCircle,
   ArrowLeft,
   Moon,
-  Sun
+  Sun,
+  Minimize2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -73,25 +72,14 @@ const Features = () => {
       ]
     },
     {
-      icon: Upload,
-      title: "Batch Processing",
-      description: "Process multiple documents simultaneously with queue management and progress tracking.",
+      icon: Minimize2,
+      title: "Compress Files",
+      description: "Reduce file sizes while maintaining quality with our compression tool. Supports PDF, PNG, and JPG files. Perfect for saving storage space and faster file sharing.",
       capabilities: [
-        "Multi-file upload",
-        "Progress monitoring",
-        "Error handling",
-        "Queue management"
-      ]
-    },
-    {
-      icon: Shield,
-      title: "Secure Processing",
-      description: "All documents are processed securely with encryption and automatic deletion after processing.",
-      capabilities: [
-        "End-to-end encryption",
-        "Automatic file deletion",
-        "Privacy protection",
-        "GDPR compliant"
+        "PDF, PNG, and JPG support",
+        "Multiple compression levels",
+        "Quality preservation",
+        "Batch compression"
       ]
     }
   ];
@@ -211,35 +199,6 @@ const Features = () => {
                 </Card>
               );
             })}
-          </div>
-        </section>
-
-        {/* Supported Formats */}
-        <section className="py-16">
-          <h2 className="text-3xl font-bold text-center mb-12">Supported Document Formats</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {supportedFormats.map((category, index) => (
-              <Card key={index} className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Badge className={category.color}>{category.category}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {category.formats.map((format, formatIndex) => (
-                      <div key={formatIndex} className="border-l-2 border-muted pl-4">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-medium">{format.name}</span>
-                          <Badge variant="outline" className="text-xs">{format.extension}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{format.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </section>
 
