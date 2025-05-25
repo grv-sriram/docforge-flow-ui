@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Moon,
   Sun,
-  Minimize2
+  Minimize2,
+  ShieldCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -123,7 +124,7 @@ const Features = () => {
 
   const performanceFeatures = [
     { icon: Clock, title: "Lightning Fast", description: "Process documents in seconds with optimized algorithms" },
-    { icon: Shield, title: "Secure & Private", description: "Your documents are encrypted and automatically deleted" },
+    { icon: ShieldCheck, title: "Secure & Private", description: "Your documents are encrypted and automatically deleted" },
     { icon: CheckCircle, title: "High Quality", description: "Maintain document quality and formatting during processing" },
     { icon: Download, title: "Easy Download", description: "Direct download with no additional software required" }
   ];
