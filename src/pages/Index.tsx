@@ -2,11 +2,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, Merge, Split, RefreshCw, Upload, Moon, Sun, Menu, X } from "lucide-react";
+import { FileText, Merge, Split, RefreshCw, Upload, Moon, Sun, Menu, X, FileArchive } from "lucide-react";
 import { MergeDocuments } from "@/components/MergeDocuments";
 import { SplitDocuments } from "@/components/SplitDocuments";
 import { ExtractText } from "@/components/ExtractText";
 import { ConvertFormat } from "@/components/ConvertFormat";
+import CompressFiles from "@/components/CompressFiles";
 import { useTheme } from "next-themes";
 import { Link } from "react-router-dom";
 
@@ -48,6 +49,14 @@ const Index = () => {
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-500/10 border-orange-500/20",
     },
+    {
+      id: "compress",
+      title: "Compress Files",
+      description: "Reduce file size efficiently",
+      icon: FileArchive,
+      color: "from-red-500 to-red-600",
+      bgColor: "bg-red-500/10 border-red-500/20",
+    },
   ];
 
   const handleToolSelect = (toolId: string) => {
@@ -72,6 +81,8 @@ const Index = () => {
         return <ExtractText onBack={handleBackToTools} />;
       case "convert":
         return <ConvertFormat onBack={handleBackToTools} />;
+      case "compress":
+        return <CompressFiles onBack={handleBackToTools} />;
       default:
         return null;
     }
@@ -231,7 +242,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {tools.map((tool) => {
               const IconComponent = tool.icon;
               return (
