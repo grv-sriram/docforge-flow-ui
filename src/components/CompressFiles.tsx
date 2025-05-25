@@ -35,6 +35,7 @@ const CompressFiles = ({ onBack }: { onBack: () => void }) => {
   const [compressedFiles, setCompressedFiles] = useState<CompressedFile[]>([]);
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState(0);
+  const [showUpload, setShowUpload] = useState(true);
   const { toast } = useToast();
 
   const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png'];
@@ -77,6 +78,10 @@ const CompressFiles = ({ onBack }: { onBack: () => void }) => {
     });
 
     setUploadedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const handleNext = () => {
+    setShowUpload(false);
   };
 
   const removeFile = (index: number) => {
@@ -163,66 +168,84 @@ const CompressFiles = ({ onBack }: { onBack: () => void }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  if (showUpload) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" onClick={onBack} className="flex items-center space-x-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Tools</span>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center space-x-2">
+              <Upload className="h-6 w-6 text-blue-500" />
+              <span>Compress Files</span>
+            </h1>
+            <p className="text-muted-foreground">Reduce file size while maintaining quality</p>
+          </div>
+        </div>
+
+        {/* Supported Formats */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Supported File Types</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex space-x-6">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-red-500" />
+                <span>PDF documents</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FileImage className="h-5 w-5 text-blue-500" />
+                <span>JPG images</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FileImage className="h-5 w-5 text-green-500" />
+                <span>PNG images</span>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Maximum file size: 50MB per file
+            </p>
+          </CardContent>
+        </Card>
+
+        <FileUpload
+          selectedTool="compress"
+          onFilesUploaded={handleFileUpload}
+          onNext={handleNext}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={onBack} className="flex items-center space-x-2">
+        <Button variant="ghost" onClick={() => setShowUpload(true)} className="flex items-center space-x-2">
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to Tools</span>
+          <span>Back to Upload</span>
         </Button>
         <div>
           <h1 className="text-2xl font-bold flex items-center space-x-2">
             <Upload className="h-6 w-6 text-blue-500" />
             <span>Compress Files</span>
           </h1>
-          <p className="text-muted-foreground">Reduce file size while maintaining quality</p>
+          <p className="text-muted-foreground">Configure compression settings</p>
         </div>
       </div>
 
-      {/* Supported Formats */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Supported File Types</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex space-x-6">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-red-500" />
-              <span>PDF documents</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <FileImage className="h-5 w-5 text-blue-500" />
-              <span>JPG images</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <FileImage className="h-5 w-5 text-green-500" />
-              <span>PNG images</span>
-            </div>
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Maximum file size: 50MB per file
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* File Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Files</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FileUpload
-            onFilesSelected={handleFileUpload}
-            acceptedFormats={supportedFormats}
-            maxFileSize={maxFileSize}
-            multiple={true}
-          />
-          
-          {/* Uploaded Files List */}
-          {uploadedFiles.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <h4 className="font-medium">Uploaded Files ({uploadedFiles.length})</h4>
+      {/* Uploaded Files List */}
+      {uploadedFiles.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Uploaded Files ({uploadedFiles.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
               {uploadedFiles.map((file, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center space-x-3">
@@ -242,9 +265,9 @@ const CompressFiles = ({ onBack }: { onBack: () => void }) => {
                 </div>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Compression Options */}
       <Card>
