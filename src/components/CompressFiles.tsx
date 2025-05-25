@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Upload, FileImage, FileText, Download, X } from "lucide-react";
 import { FileUpload } from "@/components/FileUpload";
-import { downloadFile, createMockDocument } from "@/utils/downloadUtils";
+import { downloadFile, createProcessedDocument } from "@/utils/downloadUtils";
 import { useToast } from "@/hooks/use-toast";
 
 interface CompressedFile {
@@ -117,10 +117,10 @@ const CompressFiles = ({ onBack }: { onBack: () => void }) => {
           : getCompressionRatio(compressionOptions.level);
         
         const compressedSize = Math.floor(file.size * ratio);
-        const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+        const compressedFileName = file.name.replace(/\.[^/.]+$/, "") + "_compressed." + file.name.split('.').pop();
         
-        // Create compressed file blob (mock implementation)
-        const compressedBlob = createMockDocument(file.name, extension);
+        // Create compressed file blob using the actual file processing
+        const compressedBlob = await createProcessedDocument(file, compressedFileName);
         
         compressed.push({
           id: `${file.name}-${Date.now()}`,
