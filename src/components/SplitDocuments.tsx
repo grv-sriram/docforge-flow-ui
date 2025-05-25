@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, ArrowLeft, Download, FileText, Scissors } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { downloadFile, createSplitDocument } from "@/utils/downloadUtils";
+import { downloadFile, createSplitDocuments } from "@/utils/downloadUtils";
 
 interface SplitDocumentsProps {
   onBack: () => void;
@@ -150,26 +150,35 @@ export const SplitDocuments = ({ onBack }: SplitDocumentsProps) => {
     setProgress(0);
     setSplitFiles([]);
 
-    // Simulate splitting process
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          
-          // Create split files
-          const files = createSplitDocument(uploadedFile.name, pagesToSplit, namingPattern);
-          setSplitFiles(files);
-          
-          setIsProcessing(false);
-          toast({
-            title: "Split Complete!",
-            description: `Document split into ${pagesToSplit.length} files.`,
-          });
-          return 100;
-        }
-        return prev + 8;
+    try {
+      // Create split files using actual file content
+      const files = await createSplitDocuments(uploadedFile, pagesToSplit, namingPattern);
+      
+      // Simulate progress for UI feedback
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setSplitFiles(files);
+            setIsProcessing(false);
+            toast({
+              title: "Split Complete!",
+              description: `Document split into ${pagesToSplit.length} files.`,
+            });
+            return 100;
+          }
+          return prev + 8;
+        });
+      }, 200);
+    } catch (error) {
+      console.error('Split error:', error);
+      setIsProcessing(false);
+      toast({
+        title: "Split Failed",
+        description: "An error occurred while splitting the document.",
+        variant: "destructive",
       });
-    }, 200);
+    }
   };
 
   const handleDownloadFile = (file: { name: string; content: Blob }) => {

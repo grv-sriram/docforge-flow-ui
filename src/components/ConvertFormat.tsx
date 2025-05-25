@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Upload, X, FileText, ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { downloadFile, downloadZip, createMockDocument } from "@/utils/downloadUtils";
+import { downloadFile, downloadZip, convertDocumentFormat } from "@/utils/downloadUtils";
 
 interface ConvertFormatProps {
   onBack: () => void;
@@ -123,42 +124,61 @@ export const ConvertFormat = ({ onBack }: ConvertFormatProps) => {
     // Update all files to converting status
     setUploadedFiles(files => files.map(file => ({ ...file, status: 'converting' as const })));
 
-    // Simulate conversion process for each file
     const totalFiles = uploadedFiles.length;
     let completedFiles = 0;
 
     for (const file of uploadedFiles) {
-      // Simulate individual file conversion
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+      try {
+        // Simulate individual file conversion progress
+        for (let progress = 0; progress <= 90; progress += 10) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          setUploadedFiles(files => files.map(f => 
+            f.id === file.id ? { ...f, progress } : f
+          ));
+        }
+
+        // Create converted file using actual file content
+        const originalName = file.name.split('.').slice(0, -1).join('.');
+        const convertedBlob = await convertDocumentFormat(file, file.outputFormat, `${originalName}.${file.outputFormat}`);
+
+        // Mark file as completed
         setUploadedFiles(files => files.map(f => 
-          f.id === file.id ? { ...f, progress } : f
+          f.id === file.id ? { 
+            ...f, 
+            status: 'completed' as const, 
+            progress: 100,
+            convertedBlob 
+          } : f
         ));
+
+        completedFiles++;
+        setOverallProgress((completedFiles / totalFiles) * 100);
+      } catch (error) {
+        console.error('Conversion error for file:', file.name, error);
+        
+        // Mark file as error
+        setUploadedFiles(files => files.map(f => 
+          f.id === file.id ? { 
+            ...f, 
+            status: 'error' as const, 
+            progress: 0
+          } : f
+        ));
+
+        toast({
+          title: "Conversion Error",
+          description: `Failed to convert ${file.name}`,
+          variant: "destructive",
+        });
       }
-
-      // Create converted file blob
-      const originalName = file.name.split('.').slice(0, -1).join('.');
-      const convertedBlob = createMockDocument(`${originalName}.${file.outputFormat}`, file.outputFormat);
-
-      // Mark file as completed
-      setUploadedFiles(files => files.map(f => 
-        f.id === file.id ? { 
-          ...f, 
-          status: 'completed' as const, 
-          progress: 100,
-          convertedBlob 
-        } : f
-      ));
-
-      completedFiles++;
-      setOverallProgress((completedFiles / totalFiles) * 100);
     }
 
     setIsProcessing(false);
+    const successfulConversions = uploadedFiles.filter(f => f.status === 'completed').length;
     toast({
       title: "Conversion Complete!",
-      description: `${totalFiles} file(s) converted successfully.`,
+      description: `${successfulConversions} file(s) converted successfully.`,
     });
   };
 

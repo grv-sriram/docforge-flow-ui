@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, FileText, ArrowLeft, Download, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { downloadFile, createMockDocument } from "@/utils/downloadUtils";
+import { downloadFile, createMergedDocument } from "@/utils/downloadUtils";
 
 interface MergeDocumentsProps {
   onBack: () => void;
@@ -135,17 +136,16 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
     setMergedBlob(null);
 
     try {
-      // Simulate merging process
+      // Create merged file using actual file content
+      const fileExtension = uploadedFiles[0].name.split('.').pop()?.toLowerCase() || 'pdf';
+      const mergedFile = await createMergedDocument(uploadedFiles, `${outputFilename}.${fileExtension}`);
+      
+      // Simulate progress for UI feedback
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 100) {
             clearInterval(interval);
-            
-            // Create merged file blob
-            const fileExtension = uploadedFiles[0].name.split('.').pop()?.toLowerCase() || 'pdf';
-            const mergedFile = createMockDocument(`${outputFilename}.${fileExtension}`, fileExtension);
             setMergedBlob(mergedFile);
-            
             setIsProcessing(false);
             toast({
               title: "Merge Complete!",
@@ -155,7 +155,7 @@ export const MergeDocuments = ({ onBack }: MergeDocumentsProps) => {
           }
           return prev + 10;
         });
-      }, 300);
+      }, 200);
     } catch (error) {
       console.error('Merge error:', error);
       setIsProcessing(false);
